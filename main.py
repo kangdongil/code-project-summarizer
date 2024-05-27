@@ -70,7 +70,7 @@ def file_inspection(root_dir, output_file, list_inspection_needed, ignore_paths)
         for file_path, content in file_contents.items():
             relative_path = os.path.relpath(file_path, root_dir)
             f.write(f"## {relative_path}\n")
-            f.write(f"```\n{content}```\n\n")
+            f.write(f"```\n{content}\n```\n\n")  # Ensure newline before closing triple backticks
 
 if __name__ == "__main__":
     project_directory = os.getcwd()  # Use current working directory
