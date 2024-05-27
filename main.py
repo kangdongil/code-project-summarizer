@@ -1,4 +1,5 @@
 import os
+import fnmatch
 
 def generate_tree_structure(root_dir, padding='', exclude_skipping=None, max_files=4, top_files=3):
     if exclude_skipping is None:
@@ -38,17 +39,18 @@ def generate_tree_structure(root_dir, padding='', exclude_skipping=None, max_fil
 
     return structure
 
-def read_js_files(root_dir):
-    js_files = {}
+def read_file_content(root_dir, patterns):
+    file_contents = {}
     for subdir, _, files in os.walk(root_dir):
         for file in files:
-            if file.endswith('.js'):
-                file_path = os.path.join(subdir, file)
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    js_files[file_path] = f.read()
-    return js_files
+            for pattern in patterns:
+                if fnmatch.fnmatch(file, pattern):
+                    file_path = os.path.join(subdir, file)
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        file_contents[file_path] = f.read()
+    return file_contents
 
-def create_md_file(root_dir, output_file, exclude_skipping=None, max_files=4, top_files=3):
+def tree_structure_summary(root_dir, output_file, exclude_skipping=None, max_files=4, top_files=3):
     if exclude_skipping is None:
         exclude_skipping = []
 
@@ -56,9 +58,11 @@ def create_md_file(root_dir, output_file, exclude_skipping=None, max_files=4, to
         f.write("## Project Structure\n")
         tree_structure = generate_tree_structure(root_dir, exclude_skipping=exclude_skipping, max_files=max_files, top_files=top_files)
         f.write(f"```\n{tree_structure}```\n\n")
-        
-        js_files = read_js_files(root_dir)
-        for file_path, content in js_files.items():
+
+def file_inspection(root_dir, output_file, list_inspection_needed):
+    file_contents = read_file_content(root_dir, list_inspection_needed)
+    with open(output_file, 'a', encoding='utf-8') as f:  # Open in append mode
+        for file_path, content in file_contents.items():
             relative_path = os.path.relpath(file_path, root_dir)
             f.write(f"## {relative_path}\n")
             f.write(f"```\n{content}```\n\n")
@@ -67,4 +71,7 @@ if __name__ == "__main__":
     project_directory = os.getcwd()  # Use current working directory
     output_md_file = "project_structure.md"
     exclude_skipping = ['.js']  # Add extensions to exclude from skipping here
-    create_md_file(project_directory, output_md_file, exclude_skipping=exclude_skipping)
+    list_inspection_needed = ["*.js", "lib/manifest.json"]
+
+    tree_structure_summary(project_directory, output_md_file, exclude_skipping=exclude_skipping)
+    file_inspection(project_directory, output_md_file, list_inspection_needed)
