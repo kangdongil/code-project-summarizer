@@ -1,8 +1,8 @@
 {
-    "exclude_extensions": [".js"],
-    "inspection_patterns": ["*.js", "lib/manifest.json"],
-    "ignore_directories": ["data/"],
-    "is_compact": true,
-    "max_files": 4,
-    "top_files": 3
-  }
+  "exclude_extensions": [".js"],
+  "inspection_patterns": ["*.js", "manifest.json"],
+  "ignore_directories": ["data/"],
+  "is_compact": true,
+  "max_files": 4,
+  "top_files": 3
+}

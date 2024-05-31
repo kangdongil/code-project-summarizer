@@ -1,5 +1,7 @@
 import os
+import sys
 import json
+from datetime import datetime
 from utils.tree_generator import generate_project_tree
 from utils.file_reader import get_file_contents
 
@@ -30,7 +32,7 @@ def write_project_tree_summary(root_dir, output_file, config):
             top_files=config["top_files"], 
             is_compact=config["is_compact"]
         )
-        f.write(f"```\n{tree_structure}```\n")
+        f.write(f"```\n{tree_structure}```\n\n")
 
 def write_file_contents(root_dir, output_file, config):
     file_contents = get_file_contents(
@@ -43,14 +45,31 @@ def write_file_contents(root_dir, output_file, config):
         for file_path, content in file_contents.items():
             relative_path = os.path.relpath(file_path, root_dir)
             f.write(f"## {relative_path}\n")
-            f.write(f"```\n{content}\n```\n")  # Ensure newline before closing triple backticks
+            f.write(f"```\n{content}\n```\n\n")  # Ensure newline before closing triple backticks
 
 if __name__ == "__main__":
-    current_directory = os.getcwd()  # Use current working directory
-    config_file = os.path.join(current_directory, "config.json")
-    output_md_file = "result.md"
+    if len(sys.argv) < 2:
+        print("Usage: python main.py <project_directory>")
+        sys.exit(1)
 
+    project_directory = os.path.abspath(sys.argv[1].replace("\\", "/"))
+    if not os.path.isdir(project_directory):
+        print(f"Error: {project_directory} is not a valid directory.")
+        sys.exit(1)
+
+    config_file = "config.json"
     config = load_config(config_file)
 
-    write_project_tree_summary(current_directory, output_md_file, config)
-    write_file_contents(current_directory, output_md_file, config)
+    # Create the output directory if it doesn't exist
+    output_directory = os.path.join(os.getcwd(), "data/output")
+    os.makedirs(output_directory, exist_ok=True)
+
+    # Generate the output file name
+    timestamp = datetime.now().strftime("%y%m%d%H%M")
+    project_name = os.path.basename(project_directory)
+    output_md_file = os.path.join(output_directory, f"{timestamp}_{project_name}_summary.md")
+
+    write_project_tree_summary(project_directory, output_md_file, config)
+    write_file_contents(project_directory, output_md_file, config)
+
+    print(f"Summary generated and saved to {output_md_file}")
